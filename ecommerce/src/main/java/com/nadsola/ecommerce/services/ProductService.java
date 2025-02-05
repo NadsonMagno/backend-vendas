@@ -1,6 +1,5 @@
 package com.nadsola.ecommerce.services;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,5 +31,17 @@ public class ProductService {
         Page<Product> listResult = productRepository.findAll(pageable);
         return listResult.map(x -> new ProductDTO(x));
     }
+
+    @Transactional
+    public ProductDTO insert(ProductDTO dto) {
+       Product product = new Product(null, dto.getName(), dto.getDescription(), dto.getPrice(), dto.getImgUrl());
+
+         product = productRepository.save(product);
+            return new ProductDTO(product);
+
+
+    }
+
+
 
 }
