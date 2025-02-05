@@ -1,7 +1,5 @@
 package com.nadsola.ecommerce.services;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nadsola.ecommerce.dto.ProductDTO;
 import com.nadsola.ecommerce.model.entities.Product;
 import com.nadsola.ecommerce.repositories.ProductRepository;
+import com.nadsola.ecommerce.services.exceptions.ResourceNotFoundException;
 
 @Service
 public class ProductService {
@@ -19,11 +18,16 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductDTO findById(Long id) {
-        Optional<Product> result  = productRepository.findById(id);
-        Product product = result.get();
+        
+        
 
-        ProductDTO productDTO = new ProductDTO(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getImgUrl());
-        return productDTO;
+        
+        Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Id not found"));
+
+        return new ProductDTO(product);
+
+        
+
     }
 
     @Transactional(readOnly = true)
@@ -44,6 +48,7 @@ public class ProductService {
 
     @Transactional
     public ProductDTO update(Long id, ProductDTO dto) {
+        
         Product product = productRepository.getReferenceById(id);
                
         copyDTOToEntity(dto, product);
