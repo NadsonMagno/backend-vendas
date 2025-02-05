@@ -1,6 +1,8 @@
 package com.nadsola.ecommerce.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +23,14 @@ public class ProductController {
     public ProductDTO findById(@PathVariable Long id){
 
       ProductDTO productDTO = productService.findById(id);
+      return productDTO;
+
+    }
+
+    @GetMapping
+    public Page <ProductDTO> findAll(Pageable pageable){
+
+      Page <ProductDTO> productDTO = productService.findAll(pageable);
       return productDTO;
 
     }
