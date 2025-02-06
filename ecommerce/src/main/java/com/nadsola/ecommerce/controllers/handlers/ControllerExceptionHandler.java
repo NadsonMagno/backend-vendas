@@ -4,10 +4,13 @@ import java.time.Instant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.nadsola.ecommerce.dto.CustomError;
+import com.nadsola.ecommerce.dto.ValidationError;
 import com.nadsola.ecommerce.services.exceptions.DataBaseException;
 import com.nadsola.ecommerce.services.exceptions.ResourceNotFoundException;
 
@@ -58,6 +61,33 @@ public class ControllerExceptionHandler {
         String error = "Database error"; // Mensagem de erro descritiva
         HttpStatus status = HttpStatus.BAD_REQUEST; // Define o status HTTP como 400 (Bad Request)
         CustomError err = new CustomError(Instant.now(), status.value(), e.getMessage(), request.getRequestURI()); // Cria o objeto de erro personalizado
+        return ResponseEntity.status(status).body(err); // Retorna a resposta com o status e o corpo do erro
+    }
+
+    /**
+     * Método que trata exceções do tipo MethodArgumentNotValidException.
+     * 
+     * @param e A exceção lançada quando ocorre um erro de validação de argumentos de um método.
+     * @param request O objeto HttpServletRequest que contém informações sobre a requisição HTTP.
+     * @return ResponseEntity contendo um objeto ValidationError com detalhes sobre a exceção.
+     * 
+     * Este método é acionado automaticamente quando uma exceção do tipo MethodArgumentNotValidException
+     * é lançada em qualquer controlador da aplicação. Ele cria um objeto ValidationError com informações
+     * detalhadas sobre o erro, incluindo o timestamp, o status HTTP, a mensagem de erro e a URI da requisição.
+     * Em seguida, retorna uma ResponseEntity com o status HTTP 422 (Unprocessable Entity) e o objeto ValidationError no corpo da resposta.
+     */
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<CustomError> methodArgumentNotValidation(MethodArgumentNotValidException e, HttpServletRequest request) {
+        String error = "Validation error"; // Mensagem de erro descritiva
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY; // Define o status HTTP como 422 (Unprocessable Entity)
+       ValidationError err = new ValidationError(Instant.now(), status.value(), "Dados invaidos", request.getRequestURI()); //]
+
+         //Percorre a lista de erros da exceção e adiciona cada erro ao objeto ValidationError
+         for (FieldError fe : e.getBindingResult().getFieldErrors()) {
+             err.addError(fe.getField(), fe.getDefaultMessage());
+         }
+
         return ResponseEntity.status(status).body(err); // Retorna a resposta com o status e o corpo do erro
     }
 
