@@ -1,15 +1,21 @@
 package com.nadsola.ecommerce.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nadsola.ecommerce.dto.ProductDTO;
 import com.nadsola.ecommerce.model.entities.Product;
 import com.nadsola.ecommerce.repositories.ProductRepository;
+import com.nadsola.ecommerce.services.exceptions.DataBaseException;
 import com.nadsola.ecommerce.services.exceptions.ResourceNotFoundException;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class ProductService {
@@ -49,6 +55,7 @@ public class ProductService {
     @Transactional
     public ProductDTO update(Long id, ProductDTO dto) {
         
+       try{
         Product product = productRepository.getReferenceById(id);
                
         copyDTOToEntity(dto, product);
@@ -56,6 +63,9 @@ public class ProductService {
          product = productRepository.save(product);
             return new ProductDTO(product);
 
+       } catch (EntityNotFoundException e) {
+           throw new ResourceNotFoundException("Id not found" );
+       }
 
     }
 
@@ -66,9 +76,18 @@ public class ProductService {
         product.setImgUrl(dto.getImgUrl());
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void deleteById(Long id) {
-       productRepository.deleteById(id);
+        try{
+            productRepository.deleteById(id);
+
+        }
+        catch (EmptyResultDataAccessException e) {
+            throw new ResourceNotFoundException("Id not found" );
+        }
+        catch (DataIntegrityViolationException e) {
+            throw new DataBaseException("Integrity violation" );
+        }
     }
 
 
