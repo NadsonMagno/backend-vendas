@@ -25,20 +25,15 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductDTO findById(Long id) {
         
-        
-
-        
         Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Id not found"));
 
-        return new ProductDTO(product);
-
-        
+        return new ProductDTO(product);        
 
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAll(Pageable pageable) {
-        Page<Product> listResult = productRepository.findAll(pageable);
+    public Page<ProductDTO> findAll(String name, Pageable pageable) {
+        Page<Product> listResult = productRepository.seasearchByName(name, pageable);
         return listResult.map(x -> new ProductDTO(x));
     }
 
